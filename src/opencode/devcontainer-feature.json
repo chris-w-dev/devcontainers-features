@@ -1,0 +1,51 @@
+{
+    "id": "opencode",
+    "version": "0.1.0",
+    "name": "OpenCode.ai",
+    "description": "Installs the OpenCode.ai CLI and dependencies.",
+    "options": {
+        "version": {
+            "type": "string",
+            "default": "latest",
+            "description": "Specify the version of OpenCode.ai to install. If not provided, the latest version will be used."
+        },
+        "installBun": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true, install the Bun JavaScript runtime as a dependency for OpenCode.ai."
+        },
+        "copyLocalConfigFolder": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, copy the contents of ${localEnv:OPENCODE_CONFIG_PATH} to persistent storage during initialization."
+        },
+        "customInitScript": {
+            "type": "string",
+            "default": "",
+            "description": "Custom initialization script for setting up the OpenCode.ai environment. If not provided, a default initialization script will be used."
+        }
+    },
+    // Mount OpenCode config
+    "mounts": [
+        // Mount the OpenCode global config directory
+        {
+            "type": "bind",
+            "source": "${localEnv:OPENCODE_CONFIG_PATH}",
+            "target": "/mnt/opencode/.config"
+        },
+        // Mount the OpenCode auth file from the local state directory
+        {
+            "type": "bind",
+            "source": "${localEnv:OPENCODE_CONFIG_PATH}/../.local/share/opencode/auth.json",
+            "target": "/mnt/opencode/.local/share/opencode/auth.json"
+        },
+        // Mount the OpenCode state directory as a persistent volume
+        {
+            "type": "volume",
+            "source": "opencode-state-${devcontainerId}",
+            "target": "/var/opencode"
+        }
+    ],
+    "postCreateCommand": "init-opencode",
+    "postAttachCommand": "init-opencode-auth"
+}
